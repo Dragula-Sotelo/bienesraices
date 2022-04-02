@@ -2,6 +2,10 @@
     require '../../includes/config/databases.php';
     $db = conectarDB();
 
+    //Consultar para obtener los vendedores
+    $consulta = "SELECT * FROM vendedores";
+    $resultado = mysqli_query($db, $consulta);
+
     // Arreglo con mensajes de errores
     $errores = [];
 
@@ -25,7 +29,8 @@
         $habitaciones = $_POST['habitaciones'];
         $wc = $_POST['wc'];
         $estacionamiento = $_POST['estacionamiento'];
-        $vendedorId = isset($_POST['vendedorId']);
+        $vendedorId = $_POST['vendedor'];
+        $creado = date('Y/m/d');
 
         if(!$titulo) {
             $errores[] = "Debes añadir un titulo";
@@ -62,13 +67,15 @@
         //Revisar que el array de errores este vacío
         if(empty($errores)) {
             //Insertar en la base de datos
-            $query = " INSERT INTO propiedades (titulo, precio, descripcion, habitaciones, wc, estacionamiento, vendedor) VALUES ('$titulo', '$precio', '$descripcion', '$habitaciones', '$wc', '$estacionamiento', '$vendedorId' ) ";
+            $query = " INSERT INTO propiedades (titulo, precio, descripcion, habitaciones, wc, estacionamiento, creado, vendedorId) VALUES ('$titulo', '$precio', '$descripcion', '$habitaciones', '$wc', '$estacionamiento', '$creado', '$vendedorId' ) ";
 
             // echo $query;
             $resultado = mysqli_query($db, $query);
 
             if($resultado) {
-                echo "Insertado correctamente";
+                // echo "Insertado correctamente";
+                //Redireccionar al usuario.
+                header('Location: /admin');
             }
         }
     }
@@ -96,7 +103,7 @@
                 <input type="text" id="titulo" name="titulo" placeholder="Titulo Propiedad" value="<?php echo $titulo; ?>">
 
                 <label for="precio">Precio:</label>
-                <input type="number" id="precio" name="precio" placeholder="Titulo Propiedad" value="<?php echo $precio; ?>">
+                <input type="number" id="precio" name="precio" placeholder="Precio" value="<?php echo $precio; ?>">
 
                 <label for="imagen">Imagen:</label>
                 <input type="file" id="imagen" accept="image/jpeg, image/png">
@@ -121,10 +128,12 @@
             <fieldset>
                 <legend>Vendedor</legend>
 
-                <select name="vendedorId">
+                <select name="vendedor">
                     <option value="" disabled selected>-- Seleccione --</option>
-                    <option value="1">Lou</option>
-                    <option value="2">Salem</option>
+                    <?php while($vendedor = mysqli_fetch_assoc($resultado)): ?>
+                        <option <?php echo $vendedorId === $vendedor['id'] ? 'selected' : ''; ?> value="<?php echo $vendedor['id']; ?>">
+                        <?php echo $vendedor['nombre'] . " " . $vendedor['apellido']; ?></option>
+                    <?php endwhile; ?>
                 </select>
             </fieldset>
 
