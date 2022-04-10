@@ -52,7 +52,7 @@
         $creado = date('Y/m/d');
 
         //Asignar files hacia una variable
-        // $imagen = $_FILES['imagen'];
+        $imagen = $_FILES['imagen'];
 
         if(!$titulo) {
             $errores[] = "Debes añadir un titulo";
@@ -95,23 +95,31 @@
 
         //Revisar que el array de errores este vacío
         if(empty($errores)) {
+            //Crear carpeta
+            $carpetaImagenes = '../../imagenes/';
+
+            if(!is_dir($carpetaImagenes)) {
+                mkdir($carpetaImagenes);
+            }
+
+            $nombreImagen = '';
+
             // /** SUBIDA DE ARCHIVOS */
+            if($imagen['name']) {
+                //Eliminar la imagen previa
+                unlink($carpetaImagenes . $propiedad['imagen']);
 
-            // //Crear carpeta
-            // $carpetaImagenes = '../../imagenes/';
+                //Generar un nombre único
+                $nombreImagen = md5(uniqid(rand(), true)) . ".jpg";
 
-            // if(!is_dir($carpetaImagenes)) {
-            //     mkdir($carpetaImagenes);
-            // }
-
-            // //Generar un nombre único
-            // $nombreImagen = md5(uniqid(rand(), true)) . ".jpg";
-
-            // //Subir imagen
-            // move_uploaded_file($imagen['tmp_name'], $carpetaImagenes . $nombreImagen);
+                //Subir imagen
+                move_uploaded_file($imagen['tmp_name'], $carpetaImagenes . $nombreImagen);
+            } else {
+                $nombreImagen = $propiedad['imagen'];
+            }
 
             //Insertar en la base de datos
-            $query = "UPDATE propiedades SET titulo = '${titulo}', precio = '${precio}', descripcion = '${descripcion}', habitaciones = ${habitaciones}, wc = ${wc}, estacionamiento = ${estacionamiento}, vendedorId = ${vendedorId} WHERE id = ${id}";
+            $query = "UPDATE propiedades SET titulo = '${titulo}', precio = '${precio}', imagen = '${nombreImagen}', descripcion = '${descripcion}', habitaciones = ${habitaciones}, wc = ${wc}, estacionamiento = ${estacionamiento}, vendedorId = ${vendedorId} WHERE id = ${id}";
 
             // echo $query;
 
