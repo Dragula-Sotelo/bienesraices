@@ -1,6 +1,5 @@
 <?php 
     //Importar la conexión
-    require __DIR__ . '/../config/databases.php';
     $db = conectarDB();
 
     //Consultar

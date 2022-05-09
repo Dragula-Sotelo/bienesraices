@@ -1,0 +1,17 @@
+{
+    "name": "sotelo/bienesraices",
+    "description": "Creando un proyecto con POO",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Dragula-Sotelo",
+            "email": "ninosotelo60@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "App\\" : "./classes"
+        }
+    }
+}
