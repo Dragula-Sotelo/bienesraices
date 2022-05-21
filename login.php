@@ -1,85 +1,72 @@
-<?php
-    //Incluye el header
-    require 'includes/app.php';
-    $db = conectarDB();
+<?php 
 
-    // Autenticar el usuario
-    $errores = [];
+    // Incluye el header
+    require 'includes/app.php';
+    use App\Admin;
+
+    $errores = Admin::getErrores();
 
     if($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // echo "<pre>";
-        // var_dump($_POST);
-        // echo "</pre>";
 
-        $email = mysqli_real_escape_string($db, filter_var($_POST['email'], FILTER_VALIDATE_EMAIL));
-        $password = mysqli_real_escape_string($db, $_POST['password']);
+        // Instanciar admin
+        $admin = new Admin($_POST['admin']);
+        $errores = $admin->validar();
+        
+        if(empty($errores)) {
 
-        if(!$email) {
-            $errores[] = "El email es obligatorio o no es válido";
-        }
+            // Revisar si el usuario existe.
+            $resultado = $admin->existeUsuario();
 
-        if(!$password) {
-            $errores[] = "El password es obligatorio";
-        }
+            // Asignar el resultado del arreglo de resultado
+            [$existe, $resultado] = $resultado;
+            
+            if( $existe ) {
+                // Usuario existe, verificar su password
+                $resultado = $admin->verificarPassword($resultado);
+                [$auth] = $resultado;
 
-        if(empty($errores)){
-            //Revisar si el usuario existe
-            $query = "SELECT * FROM usuarios WHERE email = '${email}'";
-            $resultado = mysqli_query($db, $query);
-
-            if($resultado->num_rows) {
-                //Revisar si el password es correcto
-                $usuario = mysqli_fetch_assoc($resultado);
-                
-                //Verificar si el password es correcto o no
-                $auth = password_verify($password, $usuario['password']);
-                
-                if($auth) {
-                    //El usuario esta autenticado 
-                    session_start();
-
-                    //Llenar el arreglo de la sesión
-                    $_SESSION['usuario'] = $usuario['email'];
-                    $_SESSION['login'] = true;
-
-                    header('Location: /admin');
-                    // echo "<pre>";
-                    // var_dump($_SESSION);
-                    // echo "</pre>";
+                // Verificar si el password es correcto o no
+                if(!$auth) {
+                    return header('Location: /admin');
                 } else {
-                    $errores[] = "El password es incorrecto";
+                    $errores = $resultado[1];
                 }
             } else {
-                $errores[] = "El usuario no existe";
+                $errores = $resultado;
             }
         }
+
     }
 
+
+
     incluirTemplate('header');
-    ?>   
+?>
 
     <main class="contenedor seccion contenido-centrado">
         <h1>Iniciar Sesión</h1>
+
         <?php foreach($errores as $error): ?>
             <div class="alerta error">
                 <?php echo $error; ?>
             </div>
         <?php endforeach; ?>
+
         <form method="POST" class="formulario" novalidate>
             <fieldset>
-                <legend>Información Personal</legend>
+                <legend>Email y Password</legend>
 
                 <label for="email">E-mail</label>
-                <input type="email" name="email" placeholder="Tú Email" id="email" required>
+                <input type="email" name="admin[email]" placeholder="Tu Email" id="email">
 
                 <label for="password">Password</label>
-                <input type="password" name="password" placeholder="Tú Password" id="password" required>
+                <input type="password" name="admin[password]" placeholder="Tu Password" id="password">
             </fieldset>
-
+        
             <input type="submit" value="Iniciar Sesión" class="boton boton-verde">
         </form>
     </main>
 
-    <?php 
+<?php 
     incluirTemplate('footer');
 ?>
